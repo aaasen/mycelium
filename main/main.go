@@ -17,10 +17,13 @@ func main() {
 		go crawl.Crawl(stop, links, pages)
 	}
 
+	numPages := 0
+
 	for {
 		select {
 		case page := <-pages:
-			log.Printf("received: %v", page.URL)
+			numPages++
+			log.Printf("received %v: %v", numPages, page.URL)
 		}
 	}
 }

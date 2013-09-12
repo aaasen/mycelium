@@ -5,19 +5,6 @@ import (
 	"net/http"
 )
 
-func Fetch(url string, pages chan Page) {
-	resp, err := http.Get(url)
-
-	if err != nil {
-		log.Printf("Fetch(): %v", err)
-		return
-	}
-
-	page := NewPage(resp)
-
-	pages <- *page
-}
-
 func Get(url string) (*Page, error) {
 	resp, err := http.Get(url)
 

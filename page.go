@@ -28,7 +28,8 @@ func getLinks(content io.Reader) []string {
 	doc, err := goquery.NewDocumentFromReader(content)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("GetLinks(): %v", err)
+		return []string{}
 	}
 
 	urls := []string{}
@@ -38,7 +39,8 @@ func getLinks(content io.Reader) []string {
 			url, err := url.Parse(href)
 
 			if err != nil {
-				log.Fatalf("GetLinks(): %v", err)
+				log.Printf("GetLinks(): %v", err)
+				return
 			}
 
 			// TODO: fix this
