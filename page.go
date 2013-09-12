@@ -13,14 +13,14 @@ type Page struct {
 	URL string
 
 	response *http.Response
-	links    []string
+	Links    []string
 }
 
 func NewPage(resp *http.Response) *Page {
 	return &Page{
 		URL:      resp.Request.URL.String(),
+		Links:    getLinks(resp.Body),
 		response: resp,
-		links:    getLinks(resp.Body),
 	}
 }
 

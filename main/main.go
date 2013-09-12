@@ -3,19 +3,23 @@ package main
 import (
 	"github.com/aaasen/crawl"
 	"log"
-	"sync"
+	"time"
 )
 
 func main() {
-	wg := sync.WaitGroup{}
 
-	pages := make(chan crawl.Page)
-	crawl.Crawl([]string{"https://news.ycombinator.com/"}, pages, wg)
+	stop := make(chan bool)
+	links := make(chan string, 2048)
 
-	wg.Wait()
+	links <- "https://news.ycombinator.com/"
 
-	for i := 0; i < 5; i++ {
-		page := <-pages
-		log.Println(page)
-	}
+	log.Println("hey")
+
+	pages := make(chan crawl.Page, 1024)
+
+	go crawl.Crawl(stop, links, pages)
+
+	time.Sleep(time.Second * 2)
+
+	stop <- true
 }

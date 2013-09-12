@@ -3,17 +3,12 @@ package crawl
 import (
 	"log"
 	"net/http"
-	"sync"
 )
 
-var iterations = 0
-
-func Fetch(url string, pages chan Page, wg sync.WaitGroup) {
-	wg.Add(1)
+func Fetch(url string, pages chan Page) {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		wg.Done()
 		log.Printf("Fetch(): %v", err)
 		return
 	}
@@ -21,24 +16,42 @@ func Fetch(url string, pages chan Page, wg sync.WaitGroup) {
 	page := NewPage(resp)
 
 	pages <- *page
-	wg.Done()
 }
 
-func Crawl(urls []string, pages chan Page, wg sync.WaitGroup) {
-	log.Println(iterations)
+func Get(url string) (*Page, error) {
+	resp, err := http.Get(url)
 
-	if iterations > 0 {
-		return
+	if err != nil {
+		return nil, err
 	}
 
-	iterations++
+	return NewPage(resp), nil
+}
 
-	for _, url := range urls {
-		log.Printf("fetching: %v", url)
-		go Fetch(url, pages, wg)
-	}
+func Crawl(stop chan bool, links chan string, pages chan Page) {
+	for {
+		select {
+		case stopSignal := <-stop:
+			log.Println("stopping")
+			if stopSignal {
+				return
+			}
+		case link := <-links:
+			log.Printf("fetching: %v\n", link)
+			page, err := Get(link)
 
-	for page := range pages {
-		go Crawl(page.links, pages, wg)
+			if err != nil {
+				log.Printf("Get(): %v", err)
+			}
+
+			pages <- *page
+
+			for _, link := range page.Links {
+				links <- link
+			}
+
+		default:
+			log.Println("no links")
+		}
 	}
 }
