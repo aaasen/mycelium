@@ -42,16 +42,17 @@ func Crawl(stop chan bool, links chan string, pages chan Page) {
 
 			if err != nil {
 				log.Printf("Get(): %v", err)
+				break
 			}
-
-			pages <- *page
 
 			for _, link := range page.Links {
 				links <- link
 			}
 
+			pages <- *page
+
 		default:
-			log.Println("no links")
+			log.Println("hey")
 		}
 	}
 }

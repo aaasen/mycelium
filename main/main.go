@@ -3,23 +3,24 @@ package main
 import (
 	"github.com/aaasen/crawl"
 	"log"
-	"time"
 )
 
 func main() {
-
 	stop := make(chan bool)
-	links := make(chan string, 2048)
+	links := make(chan string, 1000000)
 
 	links <- "https://news.ycombinator.com/"
 
-	log.Println("hey")
-
 	pages := make(chan crawl.Page, 1024)
 
-	go crawl.Crawl(stop, links, pages)
+	for i := 0; i < 100; i++ {
+		go crawl.Crawl(stop, links, pages)
+	}
 
-	time.Sleep(time.Second * 2)
-
-	stop <- true
+	for {
+		select {
+		case page := <-pages:
+			log.Printf("received: %v", page.URL)
+		}
+	}
 }
