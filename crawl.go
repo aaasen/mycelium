@@ -1,35 +1,44 @@
 package crawl
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"sync"
 )
 
-func Fetch(url string, pages chan Page) {
+var iterations = 0
+
+func Fetch(url string, pages chan Page, wg sync.WaitGroup) {
+	wg.Add(1)
 	resp, err := http.Get(url)
 
 	if err != nil {
-		log.Fatalf("Fetch(): %v", err)
+		wg.Done()
+		log.Printf("Fetch(): %v", err)
+		return
 	}
 
 	page := NewPage(resp)
 
 	pages <- *page
+	wg.Done()
 }
 
-func Crawl(urls []string, pages chan Page) {
+func Crawl(urls []string, pages chan Page, wg sync.WaitGroup) {
+	log.Println(iterations)
+
+	if iterations > 0 {
+		return
+	}
+
+	iterations++
+
 	for _, url := range urls {
-		fmt.Println("url")
-		go Fetch(url, pages)
+		log.Printf("fetching: %v", url)
+		go Fetch(url, pages, wg)
 	}
 
 	for page := range pages {
-		fmt.Println(page.URL)
-		fmt.Println(page.links)
-
-		for _, link := range page.links {
-			go Fetch(link.String(), pages)
-		}
+		go Crawl(page.links, pages, wg)
 	}
 }

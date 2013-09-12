@@ -13,7 +13,7 @@ type Page struct {
 	URL string
 
 	response *http.Response
-	links    []*url.URL
+	links    []string
 }
 
 func NewPage(resp *http.Response) *Page {
@@ -24,14 +24,14 @@ func NewPage(resp *http.Response) *Page {
 	}
 }
 
-func getLinks(content io.Reader) []*url.URL {
+func getLinks(content io.Reader) []string {
 	doc, err := goquery.NewDocumentFromReader(content)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	urls := []*url.URL{}
+	urls := []string{}
 
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		if href, hrefExists := s.Attr("href"); hrefExists {
@@ -41,7 +41,10 @@ func getLinks(content io.Reader) []*url.URL {
 				log.Fatalf("GetLinks(): %v", err)
 			}
 
-			urls = append(urls, url)
+			// TODO: fix this
+			if url.IsAbs() {
+				urls = append(urls, url.String())
+			}
 		}
 	})
 
