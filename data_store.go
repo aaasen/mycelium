@@ -9,13 +9,26 @@ type DataStore interface {
 }
 
 type DebugDataStore struct {
+	Pages <-chan Page
 }
 
-func NewDebugDataStore() *DebugDataStore {
-	return &DebugDataStore{}
+func NewDebugDataStore(pages <-chan Page) *DebugDataStore {
+	return &DebugDataStore{
+		Pages: pages,
+	}
+}
+
+func (self *DebugDataStore) Run() {
+	for {
+		select {
+		case page := <-self.Pages:
+			self.Save(&page)
+		}
+	}
 }
 
 func (self *DebugDataStore) Save(page *Page) error {
-	log.Printf("recieved: %v", page.URL)
+	log.Printf("received: %v", page.URL)
+
 	return nil
 }
