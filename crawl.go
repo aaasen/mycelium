@@ -15,7 +15,7 @@ func Get(url string) (*Page, error) {
 	return NewPage(resp), nil
 }
 
-func Crawl(links_in <-chan string, links_out chan<- string, pages chan<- Page, stop <-chan bool) {
+func Crawl(links_in <-chan string, links_out chan<- string, wantMore chan<- bool, pages chan<- Page, stop <-chan bool) {
 	for {
 		select {
 		case stopSignal := <-stop:
@@ -36,7 +36,8 @@ func Crawl(links_in <-chan string, links_out chan<- string, pages chan<- Page, s
 			}
 
 			pages <- *page
-
+		default:
+			wantMore <- true
 		}
 	}
 }

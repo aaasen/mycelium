@@ -15,11 +15,13 @@ func main() {
 
 	pages := make(chan crawl.Page, 1024)
 
-	taskQueue := crawl.NewDefaultTaskQueue(links_out, links_in)
+	wantMore := make(chan bool)
+
+	taskQueue := crawl.NewDefaultTaskQueue(links_out, links_in, wantMore)
 	go taskQueue.Run()
 
 	for i := 0; i < 2; i++ {
-		go crawl.Crawl(links_in, links_out, pages, stop)
+		go crawl.Crawl(links_in, links_out, wantMore, pages, stop)
 	}
 
 	numPages := 0

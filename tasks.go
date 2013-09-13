@@ -10,22 +10,24 @@ type TaskQueue struct {
 
 	Incoming <-chan string
 	Outgoing chan<- string
+	WantMore <-chan bool
 }
 
-func NewDefaultTaskQueue(Incoming <-chan string, Outgoing chan<- string) *TaskQueue {
+func NewDefaultTaskQueue(incoming <-chan string, outgoing chan<- string, wantMore <-chan bool) *TaskQueue {
 	conn, err := redis.Dial("tcp", ":6379")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return NewTaskQueue(Incoming, Outgoing, conn)
+	return NewTaskQueue(incoming, outgoing, wantMore, conn)
 }
 
-func NewTaskQueue(Incoming <-chan string, Outgoing chan<- string, conn redis.Conn) *TaskQueue {
+func NewTaskQueue(incoming <-chan string, outgoing chan<- string, wantMore <-chan bool, conn redis.Conn) *TaskQueue {
 	return &TaskQueue{
-		Incoming: Incoming,
-		Outgoing: Outgoing,
+		Incoming: incoming,
+		Outgoing: outgoing,
+		WantMore: wantMore,
 		conn:     conn,
 	}
 }
@@ -35,6 +37,12 @@ func (self *TaskQueue) Run() {
 		select {
 		case newTask := <-self.Incoming:
 			self.Outgoing <- newTask
+
+			// add to redis
+		case wantMore := <-self.WantMore:
+			// fetch from redis, send to outgoing
+
+			log.Println(wantMore)
 		}
 	}
 }
