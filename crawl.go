@@ -15,15 +15,14 @@ func Get(url string) (*Page, error) {
 	return NewPage(resp), nil
 }
 
-func Crawl(stop chan bool, links chan string, pages chan Page) {
+func Crawl(links_in <-chan string, links_out chan<- string, pages chan<- Page, stop <-chan bool) {
 	for {
 		select {
 		case stopSignal := <-stop:
-			log.Println("stopping")
 			if stopSignal {
 				return
 			}
-		case link := <-links:
+		case link := <-links_in:
 			log.Printf("fetching: %v\n", link)
 			page, err := Get(link)
 
@@ -32,14 +31,12 @@ func Crawl(stop chan bool, links chan string, pages chan Page) {
 				break
 			}
 
-			for _, link := range page.Links {
-				links <- link
+			for _, aLink := range page.Links {
+				links_out <- aLink
 			}
 
 			pages <- *page
 
-		default:
-			log.Println("hey")
 		}
 	}
 }

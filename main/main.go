@@ -7,14 +7,16 @@ import (
 
 func main() {
 	stop := make(chan bool)
-	links := make(chan string, 1000000)
 
-	links <- "https://news.ycombinator.com/"
+	links_in := make(chan string, 1)
+	links_in <- "https://news.ycombinator.com/"
+
+	links_out := make(chan string, 1024)
 
 	pages := make(chan crawl.Page, 1024)
 
-	for i := 0; i < 100; i++ {
-		go crawl.Crawl(stop, links, pages)
+	for i := 0; i < 2; i++ {
+		go crawl.Crawl(links_in, links_out, pages, stop)
 	}
 
 	numPages := 0
