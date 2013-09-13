@@ -35,14 +35,14 @@ func (self *RedisTaskQueue) Listen(incoming <-chan string, outgoing chan<- strin
 			err := self.Push(newLink)
 
 			if err != nil {
-				log.Panicf("error pushing to redis queue: %v", err)
+				log.Fatalf("error pushing to redis queue: %v", err)
 			}
 		case <-wantMore:
 			log.Println("more tasks requested")
 			links, err := self.Pop()
 
 			if err != nil {
-				log.Panicf("error popping from redis queue: %v", err)
+				log.Fatalf("error popping from redis queue: %v", err)
 				break
 			}
 
@@ -54,9 +54,19 @@ func (self *RedisTaskQueue) Listen(incoming <-chan string, outgoing chan<- strin
 }
 
 func (self *RedisTaskQueue) Push(link string) error {
-	_, err := self.conn.Do("ZADD", "uncrawled", time.Now().Unix(), link)
+	crawled, err := self.hasBeenCrawled(link)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	if !crawled {
+		_, err := self.conn.Do("ZADD", "uncrawled", time.Now().Unix(), link)
+
+		return err
+	}
+
+	return nil
 }
 
 func (self *RedisTaskQueue) Pop() ([]string, error) {
@@ -72,9 +82,27 @@ func (self *RedisTaskQueue) Pop() ([]string, error) {
 		return nil, remErr
 	}
 
+	for _, link := range links {
+		err := self.markAsCrawled(link)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return links, nil
 }
 
 func (self *RedisTaskQueue) Stop() {
 	self.conn.Close()
+}
+
+func (self *RedisTaskQueue) markAsCrawled(url string) error {
+	_, err := self.conn.Do("SADD", "crawled", url)
+
+	return err
+}
+
+func (self *RedisTaskQueue) hasBeenCrawled(url string) (bool, error) {
+	return redis.Bool(self.conn.Do("SISMEMBER", "crawled", url))
 }
