@@ -6,32 +6,29 @@ import (
 )
 
 type RedisDataStore struct {
-	Pages <-chan Page
-
 	conn redis.Conn
 }
 
-func NewRedisDataStore(pages <-chan Page, conn redis.Conn) *RedisDataStore {
+func NewRedisDataStore(conn redis.Conn) *RedisDataStore {
 	return &RedisDataStore{
-		Pages: pages,
-		conn:  conn,
+		conn: conn,
 	}
 }
 
-func NewDefaultRedisDataStore(pages <-chan Page) *RedisDataStore {
+func NewDefaultRedisDataStore() *RedisDataStore {
 	conn, err := redis.Dial("tcp", ":6379")
 
 	if err != nil {
 		log.Fatalf("in NewRedisDataStore(): %v", err)
 	}
 
-	return NewRedisDataStore(pages, conn)
+	return NewRedisDataStore(conn)
 }
 
-func (self *RedisDataStore) Run() {
+func (self *RedisDataStore) Listen(pages <-chan Page) {
 	for {
 		select {
-		case page := <-self.Pages:
+		case page := <-pages:
 			err := self.Save(&page)
 
 			if err != nil {
