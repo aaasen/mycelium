@@ -5,7 +5,14 @@ import (
 	"net/http"
 )
 
-func get(url string) (*Page, error) {
+type Crawler struct {
+}
+
+func NewCrawler() *Crawler {
+	return &Crawler{}
+}
+
+func Get(url string) (*Page, error) {
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -15,16 +22,16 @@ func get(url string) (*Page, error) {
 	return NewPage(resp), nil
 }
 
-func Crawl(links_in <-chan string, links_out chan<- string, wantMore chan<- bool, pages chan<- Page, stop <-chan bool) {
+func (self *Crawler) Listen(linksIn <-chan string, linksOut chan<- string, wantMore chan<- bool, pages chan<- Page, stop <-chan bool) {
 	for {
 		select {
 		case stopSignal := <-stop:
 			if stopSignal {
 				return
 			}
-		case link := <-links_in:
+		case link := <-linksIn:
 			log.Printf("fetching: %v\n", link)
-			page, err := get(link)
+			page, err := Get(link)
 
 			if err != nil {
 				log.Printf("Get(): %v", err)
@@ -32,7 +39,7 @@ func Crawl(links_in <-chan string, links_out chan<- string, wantMore chan<- bool
 			}
 
 			for _, aLink := range page.Links {
-				links_out <- aLink
+				linksOut <- aLink
 			}
 
 			pages <- *page

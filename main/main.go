@@ -21,8 +21,10 @@ func main() {
 
 	dataStore := mycelium.NewDefaultRedisDataStore()
 
+	crawler := mycelium.NewCrawler()
+
 	for i := 0; i < 100; i++ {
-		go mycelium.Crawl(links_in, links_out, wantMore, pages, stop)
+		go crawler.Listen(links_in, links_out, wantMore, pages, stop)
 	}
 
 	dataStore.Listen(pages)
