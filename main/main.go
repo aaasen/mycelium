@@ -19,7 +19,7 @@ func main() {
 	taskQueue := mycelium.NewDefaultRedisTaskQueue(links_out, links_in, wantMore)
 	go taskQueue.Run()
 
-	dataStore := mycelium.NewDebugDataStore(pages)
+	dataStore := mycelium.NewDefaultRedisDataStore(pages)
 
 	for i := 0; i < 100; i++ {
 		go mycelium.Crawl(links_in, links_out, wantMore, pages, stop)
