@@ -1,4 +1,4 @@
-crawl
-=====
 
-An experimental web crawler in Go
+# Mycelium
+
+An experimental parallelized web crawler written in Golang.
