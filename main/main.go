@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/aaasen/crawl"
+	"github.com/aaasen/mycelium"
 )
 
 func main() {
@@ -12,17 +12,17 @@ func main() {
 
 	links_out := make(chan string, 100000)
 
-	pages := make(chan crawl.Page, 1024)
+	pages := make(chan mycelium.Page, 1024)
 
 	wantMore := make(chan bool)
 
-	taskQueue := crawl.NewDefaultRedisTaskQueue(links_out, links_in, wantMore)
+	taskQueue := mycelium.NewDefaultRedisTaskQueue(links_out, links_in, wantMore)
 	go taskQueue.Run()
 
-	dataStore := crawl.NewDebugDataStore(pages)
+	dataStore := mycelium.NewDebugDataStore(pages)
 
 	for i := 0; i < 100; i++ {
-		go crawl.Crawl(links_in, links_out, wantMore, pages, stop)
+		go mycelium.Crawl(links_in, links_out, wantMore, pages, stop)
 	}
 
 	dataStore.Run()
