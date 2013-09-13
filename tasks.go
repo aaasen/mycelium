@@ -3,6 +3,7 @@ package crawl
 import (
 	"github.com/garyburd/redigo/redis"
 	"log"
+	"time"
 )
 
 type TaskQueue struct {
@@ -33,16 +34,36 @@ func NewTaskQueue(incoming <-chan string, outgoing chan<- string, wantMore <-cha
 }
 
 func (self *TaskQueue) Run() {
+	defer self.conn.Close()
+
 	for {
 		select {
-		case newTask := <-self.Incoming:
-			self.Outgoing <- newTask
+		case newLink := <-self.Incoming:
+			_, err := self.conn.Do("ZADD", "uncrawled", time.Now().Unix(), newLink)
 
-			// add to redis
-		case wantMore := <-self.WantMore:
-			// fetch from redis, send to outgoing
+			if err != nil {
+				log.Panicln(err)
+			}
+		case <-self.WantMore:
+			links, getErr := redis.Strings(self.conn.Do("ZRANGE", "uncrawled", 0, 1))
 
-			log.Println(wantMore)
+			if getErr != nil {
+				log.Panicln(getErr)
+				break
+			}
+
+			_, remErr := self.conn.Do("ZREMRANGEBYRANK", "uncrawled", 0, 1)
+
+			if remErr != nil {
+				log.Panicln(remErr)
+				break
+			}
+
+			for _, link := range links {
+				log.Printf("task: %v\n", link)
+
+				self.Outgoing <- link
+			}
 		}
 	}
 }
