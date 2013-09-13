@@ -16,7 +16,7 @@ func main() {
 
 	wantMore := make(chan bool)
 
-	taskQueue := crawl.NewDefaultTaskQueue(links_out, links_in, wantMore)
+	taskQueue := crawl.NewDefaultRedisTaskQueue(links_out, links_in, wantMore)
 	go taskQueue.Run()
 
 	dataStore := crawl.NewDebugDataStore(pages)
