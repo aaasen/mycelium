@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func Get(url string) (*Page, error) {
+func get(url string) (*Page, error) {
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -24,7 +24,7 @@ func Crawl(links_in <-chan string, links_out chan<- string, wantMore chan<- bool
 			}
 		case link := <-links_in:
 			log.Printf("fetching: %v\n", link)
-			page, err := Get(link)
+			page, err := get(link)
 
 			if err != nil {
 				log.Printf("Get(): %v", err)

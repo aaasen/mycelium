@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/aaasen/crawl"
-	"log"
 )
 
 func main() {
@@ -20,17 +19,16 @@ func main() {
 	taskQueue := crawl.NewDefaultTaskQueue(links_out, links_in, wantMore)
 	go taskQueue.Run()
 
+	dataStore := crawl.NewDebugDataStore()
+
 	for i := 0; i < 100; i++ {
 		go crawl.Crawl(links_in, links_out, wantMore, pages, stop)
 	}
 
-	numPages := 0
-
 	for {
 		select {
 		case page := <-pages:
-			numPages++
-			log.Printf("received %v: %v", numPages, page.URL)
+			dataStore.Save(&page)
 		}
 	}
 }
