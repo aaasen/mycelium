@@ -16,8 +16,8 @@ func main() {
 
 	wantMore := make(chan bool)
 
-	taskQueue := mycelium.NewDefaultRedisTaskQueue(links_out, links_in, wantMore)
-	go taskQueue.Run()
+	taskQueue := mycelium.NewDefaultRedisTaskQueue()
+	go taskQueue.Listen(links_out, links_in, wantMore)
 
 	dataStore := mycelium.NewDefaultRedisDataStore()
 
@@ -26,4 +26,7 @@ func main() {
 	}
 
 	dataStore.Listen(pages)
+
+	defer dataStore.Stop()
+	defer taskQueue.Stop()
 }

@@ -8,43 +8,36 @@ import (
 
 type RedisTaskQueue struct {
 	conn redis.Conn
-
-	Incoming <-chan string
-	Outgoing chan<- string
-	WantMore <-chan bool
 }
 
-func NewDefaultRedisTaskQueue(incoming <-chan string, outgoing chan<- string, wantMore <-chan bool) *RedisTaskQueue {
+func NewDefaultRedisTaskQueue() *RedisTaskQueue {
 	conn, err := redis.Dial("tcp", ":6379")
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("in NewDefaultRedisTaskQueue():", err)
 	}
 
-	return NewRedisTaskQueue(incoming, outgoing, wantMore, conn)
+	return NewRedisTaskQueue(conn)
 }
 
-func NewRedisTaskQueue(incoming <-chan string, outgoing chan<- string, wantMore <-chan bool, conn redis.Conn) *RedisTaskQueue {
+func NewRedisTaskQueue(conn redis.Conn) *RedisTaskQueue {
 	return &RedisTaskQueue{
-		Incoming: incoming,
-		Outgoing: outgoing,
-		WantMore: wantMore,
-		conn:     conn,
+		conn: conn,
 	}
 }
 
-func (self *RedisTaskQueue) Run() {
+func (self *RedisTaskQueue) Listen(incoming <-chan string, outgoing chan<- string, wantMore <-chan bool) {
 	defer self.conn.Close()
 
 	for {
 		select {
-		case newLink := <-self.Incoming:
+		case newLink := <-incoming:
 			err := self.Push(newLink)
 
 			if err != nil {
 				log.Panicf("error pushing to redis queue: %v", err)
 			}
-		case <-self.WantMore:
+		case <-wantMore:
 			links, err := self.Pop()
 
 			if err != nil {
@@ -53,7 +46,7 @@ func (self *RedisTaskQueue) Run() {
 			}
 
 			for _, link := range links {
-				self.Outgoing <- link
+				outgoing <- link
 			}
 		}
 	}
@@ -79,4 +72,8 @@ func (self *RedisTaskQueue) Pop() ([]string, error) {
 	}
 
 	return links, nil
+}
+
+func (self *RedisTaskQueue) Stop() {
+	self.conn.Close()
 }

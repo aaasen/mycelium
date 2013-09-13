@@ -19,7 +19,7 @@ func NewDefaultRedisDataStore() *RedisDataStore {
 	conn, err := redis.Dial("tcp", ":6379")
 
 	if err != nil {
-		log.Fatalf("in NewRedisDataStore(): %v", err)
+		log.Fatalf("in NewDefaultRedisDataStore(): %v", err)
 	}
 
 	return NewRedisDataStore(conn)
@@ -44,4 +44,8 @@ func (self *RedisDataStore) Save(page *Page) error {
 	_, err := self.conn.Do("SET", page.URL, "page")
 
 	return err
+}
+
+func (self *RedisDataStore) Stop() {
+	self.conn.Close()
 }
