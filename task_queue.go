@@ -9,7 +9,7 @@ type TaskQueue interface {
 	Push(string) error
 
 	// pops tasks from the queue
-	Pop() ([]string, error)
+	Pop(int) ([]string, error)
 
 	Listen(incoming <-chan string, outgoing chan<- string, wantMore <-chan bool)
 }

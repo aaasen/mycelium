@@ -7,7 +7,7 @@ import (
 func main() {
 	stop := make(chan bool)
 
-	links_in := make(chan string, 2048)
+	links_in := make(chan string, 10000)
 
 	links_out := make(chan string, 2048)
 
@@ -19,17 +19,11 @@ func main() {
 	dataStore := mycelium.NewDefaultRedisDataStore()
 	crawler := mycelium.NewCrawler()
 
-	for i := 0; i < 1; i++ {
-		go taskQueue.Listen(links_out, links_in, wantMore)
-	}
+	go taskQueue.Listen(links_out, links_in, wantMore)
 
 	for i := 0; i < 100; i++ {
 		go crawler.Listen(links_in, links_out, wantMore, pages, stop)
 	}
-
-	// for i := 0; i < 100; i++ {
-	// 	go dataStore.Listen(pages)
-	// }
 
 	defer dataStore.Stop()
 	defer taskQueue.Stop()

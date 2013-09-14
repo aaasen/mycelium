@@ -39,7 +39,7 @@ func (self *RedisTaskQueue) Listen(incoming <-chan string, outgoing chan<- strin
 			}
 		case <-wantMore:
 			log.Println("more tasks requested")
-			links, err := self.Pop()
+			links, err := self.Pop(100)
 
 			if err != nil {
 				log.Fatalf("error popping from redis queue: %v", err)
@@ -69,8 +69,8 @@ func (self *RedisTaskQueue) Push(link string) error {
 	return nil
 }
 
-func (self *RedisTaskQueue) Pop() ([]string, error) {
-	links, getErr := redis.Strings(self.conn.Do("ZRANGE", "uncrawled", 0, 1))
+func (self *RedisTaskQueue) Pop(numTasks int) ([]string, error) {
+	links, getErr := redis.Strings(self.conn.Do("ZRANGE", "uncrawled", 0, numTasks))
 
 	if getErr != nil {
 		return nil, getErr
