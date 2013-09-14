@@ -20,12 +20,12 @@ func RankProtocol(rawURL string) float64 {
 	}
 
 	switch parsedURL.Scheme {
-	case "http":
-		return 1
 	case "https":
-		return 0.8
-	default:
 		return 0.0
+	case "http":
+		return 0.2
+	default:
+		return 1.0
 	}
 }
 
