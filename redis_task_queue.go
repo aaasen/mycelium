@@ -60,7 +60,7 @@ func (self *RedisTaskQueue) Push(link string) error {
 	}
 
 	if !crawled {
-		_, err := self.conn.Do("ZADD", "uncrawled", RankLength(link), link)
+		_, err := self.conn.Do("ZADD", "uncrawled", Rank(link), link)
 
 		return err
 	}
