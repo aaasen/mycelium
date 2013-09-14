@@ -3,7 +3,6 @@ package mycelium
 import (
 	"github.com/garyburd/redigo/redis"
 	"log"
-	"time"
 )
 
 type RedisTaskQueue struct {
@@ -61,7 +60,7 @@ func (self *RedisTaskQueue) Push(link string) error {
 	}
 
 	if !crawled {
-		_, err := self.conn.Do("ZADD", "uncrawled", time.Now().Unix(), link)
+		_, err := self.conn.Do("ZADD", "uncrawled", RankLength(link), link)
 
 		return err
 	}
