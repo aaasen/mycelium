@@ -6,7 +6,7 @@ import (
 
 func main() {
 	links_in := make(chan string, 10000)
-	links_in <- "https://google.com/"
+	links_in <- "https://news.ycombinator.com/"
 
 	links_out := make(chan string, 2048)
 

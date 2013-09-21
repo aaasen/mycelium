@@ -20,8 +20,6 @@ func NewRobotFilter() *RobotFilter {
 }
 
 func (self *RobotFilter) allowed(rawUrl string) bool {
-	log.Println(rawUrl)
-
 	url, err := url.Parse(rawUrl)
 
 	if err != nil {

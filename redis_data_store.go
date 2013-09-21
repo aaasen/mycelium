@@ -41,7 +41,7 @@ func (self *RedisDataStore) Listen(pages <-chan Page) {
 func (self *RedisDataStore) Save(page *Page) error {
 	log.Printf("received: %v", page.URL)
 
-	_, err := self.conn.Do("SET", page.URL, "page")
+	_, err := self.conn.Do("HSET", "pages", page.URL, page.Body)
 
 	return err
 }

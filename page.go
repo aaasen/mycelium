@@ -1,7 +1,9 @@
 package mycelium
 
 import (
+	"bytes"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,16 +12,25 @@ import (
 )
 
 type Page struct {
-	URL string
+	URL  string
+	Body string
 
 	response *http.Response
 	Links    []string
 }
 
 func NewPage(resp *http.Response) *Page {
+	bodyReader := io.MultiReader(resp.Body)
+	body, err := ioutil.ReadAll(bodyReader)
+
+	if err != nil {
+		log.Println("error reading response body: %v", err)
+	}
+
 	return &Page{
 		URL:      resp.Request.URL.String(),
-		Links:    getLinks(resp.Body),
+		Body:     string(body),
+		Links:    getLinks(bytes.NewReader(body)),
 		response: resp,
 	}
 }
