@@ -19,18 +19,9 @@ func NewRobotFilter() *RobotFilter {
 	}
 }
 
-func (self *RobotFilter) Listen(incoming <-chan string, outgoing chan<- string) {
-	for {
-		select {
-		case url := <-incoming:
-			if self.allowed(url) {
-				outgoing <- url
-			}
-		}
-	}
-}
-
 func (self *RobotFilter) allowed(rawUrl string) bool {
+	log.Println(rawUrl)
+
 	url, err := url.Parse(rawUrl)
 
 	if err != nil {

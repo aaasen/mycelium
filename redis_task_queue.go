@@ -37,7 +37,6 @@ func (self *RedisTaskQueue) Listen(incoming <-chan string, outgoing chan<- strin
 				log.Fatalf("error pushing to redis queue: %v", err)
 			}
 		case <-wantMore:
-			log.Println("more tasks requested")
 			links, err := self.Pop(100)
 
 			if err != nil {

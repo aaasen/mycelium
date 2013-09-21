@@ -6,10 +6,13 @@ import (
 )
 
 type Crawler struct {
+	roboFilter *RobotFilter
 }
 
 func NewCrawler() *Crawler {
-	return &Crawler{}
+	return &Crawler{
+		roboFilter: NewRobotFilter(),
+	}
 }
 
 func Get(url string) (*Page, error) {
@@ -26,6 +29,11 @@ func (self *Crawler) Listen(linksIn <-chan string, linksOut chan<- string, wantM
 	for {
 		select {
 		case link := <-linksIn:
+			if !self.roboFilter.allowed(link) {
+				log.Println("not allowed: %v", link)
+				break
+			}
+
 			log.Printf("fetching: %v\n", link)
 			page, err := Get(link)
 
