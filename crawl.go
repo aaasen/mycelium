@@ -22,13 +22,9 @@ func Get(url string) (*Page, error) {
 	return NewPage(resp), nil
 }
 
-func (self *Crawler) Listen(linksIn <-chan string, linksOut chan<- string, wantMore chan<- bool, pages chan<- Page, stop <-chan bool) {
+func (self *Crawler) Listen(linksIn <-chan string, linksOut chan<- string, wantMore chan<- bool, pages chan<- Page) {
 	for {
 		select {
-		case stopSignal := <-stop:
-			if stopSignal {
-				return
-			}
 		case link := <-linksIn:
 			log.Printf("fetching: %v\n", link)
 			page, err := Get(link)

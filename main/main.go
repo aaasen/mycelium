@@ -5,8 +5,6 @@ import (
 )
 
 func main() {
-	stop := make(chan bool)
-
 	links_in := make(chan string, 10000)
 	links_in <- "https://news.ycombinator.com/"
 
@@ -27,7 +25,7 @@ func main() {
 	go taskQueue.Listen(links_robot_filter, links_in, wantMore)
 
 	for i := 0; i < 100; i++ {
-		go crawler.Listen(links_in, links_out, wantMore, pages, stop)
+		go crawler.Listen(links_in, links_out, wantMore, pages)
 	}
 
 	defer dataStore.Stop()
