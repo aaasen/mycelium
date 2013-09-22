@@ -2,6 +2,7 @@ package mycelium
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -30,12 +31,16 @@ func NewPage(resp *http.Response) *Page {
 	return &Page{
 		URL:      resp.Request.URL.String(),
 		Body:     string(body),
-		Links:    getLinks(bytes.NewReader(body)),
+		Links:    getLinks(resp.Request.URL, bytes.NewReader(body)),
 		response: resp,
 	}
 }
 
-func getLinks(content io.Reader) []string {
+func getRootPath(url *url.URL) string {
+	return fmt.Sprintf("%s://%s", url.Scheme, url.Host)
+}
+
+func getLinks(baseUrl *url.URL, content io.Reader) []string {
 	doc, err := goquery.NewDocumentFromReader(content)
 
 	if err != nil {
@@ -54,10 +59,7 @@ func getLinks(content io.Reader) []string {
 				return
 			}
 
-			// TODO: fix this
-			if url.IsAbs() {
-				urls = append(urls, url.String())
-			}
+			urls = append(urls, baseUrl.ResolveReference(url).String())
 		}
 	})
 
