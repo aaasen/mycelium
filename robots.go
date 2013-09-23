@@ -1,6 +1,7 @@
 package mycelium
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,16 +11,37 @@ import (
 )
 
 type RobotFilter struct {
+	UserAgent string
+
 	robotData map[string]*robots.RobotsData
 }
 
 func NewRobotFilter() *RobotFilter {
 	return &RobotFilter{
+		UserAgent: "Mycelium",
 		robotData: make(map[string]*robots.RobotsData),
 	}
 }
 
-func (self *RobotFilter) allowed(rawUrl string) bool {
+// Checks if the given url is allowed to be crawled by robots and
+// retrieves the page using http.Get() if it is.
+func (self *RobotFilter) PoliteGet(url string) (*http.Response, error) {
+	if !self.Allowed(url) {
+		return nil, errors.New(fmt.Sprintf("robots not allowed for: %v", url))
+	}
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// Checks if the given url is allowed to be crawled using
+// github.com/temoto/robotstxt-go
+func (self *RobotFilter) Allowed(rawUrl string) bool {
 	url, err := url.Parse(rawUrl)
 
 	if err != nil {
@@ -28,7 +50,7 @@ func (self *RobotFilter) allowed(rawUrl string) bool {
 	}
 
 	if robotData, ok := self.robotData[url.Host]; ok {
-		return robotData.TestAgent(url.Path, "Mycelium")
+		return robotData.TestAgent(url.Path, self.UserAgent)
 	} else {
 		robotUrl := fmt.Sprintf("%s://%s/robots.txt", url.Scheme, url.Host)
 		resp, err := http.Get(robotUrl)
@@ -47,6 +69,6 @@ func (self *RobotFilter) allowed(rawUrl string) bool {
 		}
 
 		self.robotData[url.Host] = newRobotData
-		return self.robotData[url.Host].TestAgent(url.Path, "Mycelium")
+		return self.robotData[url.Host].TestAgent(url.Path, self.UserAgent)
 	}
 }
