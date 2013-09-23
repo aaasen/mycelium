@@ -26,9 +26,9 @@ func (self *Crawler) Listen(linksIn <-chan string, linksOut chan<- string, wantM
 				break
 			}
 
-			page := NewPage(resp)
+			page := NewPageFromResponse(resp)
 
-			for _, aLink := range page.Links {
+			for _, aLink := range page.GetLinks() {
 				linksOut <- aLink
 			}
 

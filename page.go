@@ -1,13 +1,13 @@
 package mycelium
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -17,10 +17,10 @@ type Page struct {
 	Body string
 
 	response *http.Response
-	Links    []string
 }
 
-func NewPage(resp *http.Response) *Page {
+// Creates a new Page using an http.Response
+func NewPageFromResponse(resp *http.Response) *Page {
 	bodyReader := io.MultiReader(resp.Body)
 	body, err := ioutil.ReadAll(bodyReader)
 
@@ -31,9 +31,13 @@ func NewPage(resp *http.Response) *Page {
 	return &Page{
 		URL:      resp.Request.URL.String(),
 		Body:     string(body),
-		Links:    getLinks(resp.Request.URL, bytes.NewReader(body)),
 		response: resp,
 	}
+}
+
+// Extracts all links (<a> tags with href attributes) from a Page
+func (self *Page) GetLinks() []string {
+	return getLinks(self.response.Request.URL, strings.NewReader(self.Body))
 }
 
 func getRootPath(url *url.URL) string {
