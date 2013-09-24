@@ -13,7 +13,7 @@ func StagedCrawl(seedUrls []string, stages int) []*Page {
 			links = append(links, page.GetLinks()...)
 		}
 
-		return append(pages, self.Crawl(links, stages-1)...)
+		return append(pages, StagedCrawl(links, stages-1)...)
 	} else if stages == 1 {
 		return NewWorker().GetPages(seedUrls, time.Second*5)
 	} else {
