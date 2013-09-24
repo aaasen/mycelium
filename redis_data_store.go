@@ -25,11 +25,11 @@ func NewDefaultRedisDataStore() *RedisDataStore {
 	return NewRedisDataStore(conn)
 }
 
-func (self *RedisDataStore) Listen(pages <-chan Page) {
+func (self *RedisDataStore) Listen(pages <-chan *Page) {
 	for {
 		select {
 		case page := <-pages:
-			err := self.Save(&page)
+			err := self.Save(page)
 
 			if err != nil {
 				log.Panicf("in RedisDataStore.Save(): %v", err)

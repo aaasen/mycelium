@@ -16,6 +16,7 @@ func NewWorker() *Worker {
 }
 
 func (self *Worker) GetPage(url string) (*Page, error) {
+	log.Printf("fetching: %v\n", url)
 	resp, err := self.roboFilter.PoliteGet(url)
 
 	if err != nil {

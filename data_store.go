@@ -4,5 +4,5 @@ import ()
 
 type DataStore interface {
 	Save(*Page) error
-	Listen(<-chan Page)
+	Listen(<-chan *Page)
 }
